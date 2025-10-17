@@ -1,0 +1,19 @@
+{
+  "name": "notifytwilio",
+  "version": "1.0.0",
+  "description": "Send messages via SMS or email using Twilio and CSV upload.",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "dependencies": {
+    "bootstrap": "^5.3.0",
+    "csv-parse": "^5.5.0",
+    "dotenv": "^16.0.0",
+    "ejs": "^3.1.8",
+    "express": "^4.18.2",
+    "express-fileupload": "^1.4.0",
+    "nodemailer": "^6.9.0",
+    "twilio": "^4.15.0"
+  }
+}

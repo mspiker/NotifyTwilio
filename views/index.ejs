@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NotifyTwilio</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+  <div class="container mt-5">
+    <h1 class="mb-4">NotifyTwilio</h1>
+    <% if (error) { %>
+      <div class="alert alert-danger"><%= error %></div>
+    <% } %>
+    <% if (message) { %>
+      <div class="alert alert-success" style="white-space: pre-line;"><%= message %></div>
+    <% } %>
+    <form action="/upload" method="post" enctype="multipart/form-data" class="mb-4">
+      <div class="mb-3">
+        <label for="csvfile" class="form-label">Upload CSV</label>
+        <input class="form-control" type="file" id="csvfile" name="csvfile" accept=".csv" required>
+      </div>
+      <button type="submit" class="btn btn-primary">Upload</button>
+    </form>
+    <% if (contacts && contacts.length) { %>
+      <h2>Contacts</h2>
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th>First Name</th>
+            <th>Last Name</th>
+            <th>Phone</th>
+            <th>Email</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% contacts.forEach(function(contact) { %>
+            <tr>
+              <td><%= contact.firstName %></td>
+              <td><%= contact.lastName %></td>
+              <td><%= contact.phone %></td>
+              <td><%= contact.email %></td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+      <form action="/send" method="post">
+        <div class="mb-3">
+          <label for="message" class="form-label">Message</label>
+          <textarea class="form-control" id="message" name="message" rows="3" required></textarea>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Send via</label>
+          <select class="form-select" name="method" required>
+            <option value="sms">SMS</option>
+            <option value="email">Email</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-success">Send</button>
+      </form>
+    <% } %>
+  </div>
+</body>
+</html>

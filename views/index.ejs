@@ -46,28 +46,33 @@
       <% } %>
     </div>
     <% if (contacts && contacts.length) { %>
-      <h2>Contacts</h2>
-      <table class="table table-bordered">
-        <thead>
-          <tr>
-            <th>First Name</th>
-            <th>Last Name</th>
-            <th>Phone</th>
-            <th>Email</th>
-          </tr>
-        </thead>
-        <tbody>
-          <% contacts.forEach(function(contact) { %>
+      <button class="btn btn-outline-secondary mb-2" type="button" data-bs-toggle="collapse" data-bs-target="#contactsCollapse" aria-expanded="false" aria-controls="contactsCollapse">
+        Show/Hide Contacts (<%= contacts.length %>)
+      </button>
+  <div class="collapse" id="contactsCollapse">
+        <h2>Contacts</h2>
+        <table class="table table-bordered">
+          <thead>
             <tr>
-              <td><%= contact.firstName %></td>
-              <td><%= contact.lastName %></td>
-              <td><%= contact.phone %></td>
-              <td><%= contact.email %></td>
+              <th>First Name</th>
+              <th>Last Name</th>
+              <th>Phone</th>
+              <th>Email</th>
             </tr>
-          <% }); %>
-        </tbody>
-      </table>
-  <form action="/confirm" method="post">
+          </thead>
+          <tbody>
+            <% contacts.forEach(function(contact) { %>
+              <tr>
+                <td><%= contact.firstName %></td>
+                <td><%= contact.lastName %></td>
+                <td><%= contact.phone %></td>
+                <td><%= contact.email %></td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+      <form action="/confirm" method="post">
         <div class="mb-3">
           <label for="message" class="form-label">Message
             <br/><span class="text-muted small">Personalize message using placeholders; _firstname, _lastname</span>
@@ -87,5 +92,6 @@
       </form>
     <% } %>
   </div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

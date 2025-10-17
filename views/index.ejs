@@ -17,7 +17,20 @@
     <% } %>
     <form action="/upload" method="post" enctype="multipart/form-data" class="mb-4">
       <div class="mb-3">
-        <label for="csvfile" class="form-label">Upload Contacts in CSV format<br/>Format is firstName,lastName,phone,email</label>
+        <label for="csvfile" class="form-label">
+          Contacts
+          <span 
+            class="ms-2" 
+            data-bs-toggle="tooltip" 
+            title="CSV format: firstName,lastName,phone,email">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-info-circle" viewBox="0 0 16 16">
+              <path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm0 13A6 6 0 1 1 8 2a6 6 0 0 1 0 12z"/>
+              <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 .875-.252 1.02-.797.073-.288.122-.621.138-.756.06-.489.252-.686.568-.686.246 0 .45.176.45.469 0 .07-.01.145-.03.217l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 .875-.252 1.02-.797.073-.288.122-.621.138-.756.06-.489.252-.686.568-.686.246 0 .45.176.45.469 0 .07-.01.145-.03.217l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 .875-.252 1.02-.797.073-.288.122-.621.138-.756.06-.489.252-.686.568-.686.246 0 .45.176.45.469 0 .07-.01.145-.03.217z"/>
+              <circle cx="8" cy="4.5" r="1"/>
+            </svg>
+          </span>
+          <br/><span class="text-muted small">CSV format: firstName, lastName, phone, email</span>
+        </label>
         <input class="form-control" type="file" id="csvfile" name="csvfile" accept=".csv" required>
       </div>
       <button type="submit" class="btn btn-primary">Upload</button>
@@ -56,14 +69,18 @@
       </table>
   <form action="/confirm" method="post">
         <div class="mb-3">
-          <label for="message" class="form-label">Message<br/>Use _firstname or _lastname to personalize message.</label>
+          <label for="message" class="form-label">Message
+            <br/><span class="text-muted small">Personalize message using placeholders; _firstname, _lastname</span>
+          </label>
           <textarea class="form-control" id="message" name="message" rows="3" required></textarea>
         </div>
         <div class="mb-3">
-          <label class="form-label">Send via</label>
+          <label class="form-label">Send Method
+            <br/><span class="text-muted small">Choose how to send the message, Email method coming soon.</span>
+          </label>
           <select class="form-select" name="method" required>
             <option value="sms">SMS</option>
-            <option value="email">Email</option>
+            <option disabled value="email">Email</option>
           </select>
         </div>
         <button type="submit" class="btn btn-success">Send</button>

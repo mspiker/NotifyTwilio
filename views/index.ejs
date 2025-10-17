@@ -8,7 +8,7 @@
 </head>
 <body>
   <div class="container mt-5">
-    <h1 class="mb-4">NotifyTwilio</h1>
+    <h1 class="mb-4">Twilio Communication Broker</h1>
     <% if (error) { %>
       <div class="alert alert-danger"><%= error %></div>
     <% } %>
@@ -17,7 +17,7 @@
     <% } %>
     <form action="/upload" method="post" enctype="multipart/form-data" class="mb-4">
       <div class="mb-3">
-        <label for="csvfile" class="form-label">Upload CSV</label>
+        <label for="csvfile" class="form-label">Upload Contacts in CSV format<br/>Format is firstName,lastName,phone,email</label>
         <input class="form-control" type="file" id="csvfile" name="csvfile" accept=".csv" required>
       </div>
       <button type="submit" class="btn btn-primary">Upload</button>
@@ -44,9 +44,9 @@
           <% }); %>
         </tbody>
       </table>
-      <form action="/send" method="post">
+  <form action="/confirm" method="post">
         <div class="mb-3">
-          <label for="message" class="form-label">Message</label>
+          <label for="message" class="form-label">Message<br/>Use _firstname or _lastname to personalize message.</label>
           <textarea class="form-control" id="message" name="message" rows="3" required></textarea>
         </div>
         <div class="mb-3">

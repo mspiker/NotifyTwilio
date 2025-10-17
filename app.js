@@ -1,15 +1,16 @@
 const express = require('express');
 const fileUpload = require('express-fileupload');
-const csvParse = require('csv-parse');
+const { parse } = require('csv-parse');
 const fs = require('fs');
 const path = require('path');
 const dotenv = require('dotenv');
 const twilio = require('twilio');
-const nodemailer = require('nodemailer');
+const sgMail = require('@sendgrid/mail');
 
 dotenv.config();
 
 const app = express();
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.use(express.static(path.join(__dirname, 'public')));
@@ -18,8 +19,55 @@ app.use(fileUpload());
 
 let contacts = [];
 
+
+// Store message and method temporarily for confirmation
+let pendingMessage = null;
+let pendingMethod = null;
+
 app.get('/', (req, res) => {
   res.render('index', { contacts, message: null, error: null });
+});
+
+app.post('/confirm', (req, res) => {
+  const { message, method } = req.body;
+  if (!contacts.length) {
+    return res.render('index', { contacts, message: null, error: 'No contacts uploaded.' });
+  }
+  if (!message) {
+    return res.render('index', { contacts, message: null, error: 'Message cannot be empty.' });
+  }
+  pendingMessage = message;
+  pendingMethod = method;
+  res.render('confirm', { contacts, message, method, error: null, testResult: null });
+});
+
+app.post('/test', async (req, res) => {
+  const { testPhone } = req.body;
+  if (!pendingMessage || !pendingMethod) {
+    return res.render('index', { contacts, message: null, error: 'No message to test.' });
+  }
+  if (!testPhone) {
+    return res.render('confirm', { contacts, message: pendingMessage, method: pendingMethod, error: 'Please enter a phone number.' });
+  }
+  // Use the first contact for personalization
+  const contact = contacts[0] || { firstName: '', lastName: '' };
+  function personalize(msg, contact) {
+    return msg
+      .replace(/_firstname/gi, contact.firstName)
+      .replace(/_lastname/gi, contact.lastName);
+  }
+  const personalizedMessage = personalize(pendingMessage, contact);
+  const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+  try {
+    await client.messages.create({
+      body: personalizedMessage,
+      from: process.env.TWILIO_PHONE_NUMBER,
+      to: testPhone
+    });
+    res.render('confirm', { contacts, message: pendingMessage, method: pendingMethod, error: null, testResult: `Test SMS sent to ${testPhone}` });
+  } catch (e) {
+    res.render('confirm', { contacts, message: pendingMessage, method: pendingMethod, error: 'Failed to send test SMS.', testResult: null });
+  }
 });
 
 app.post('/upload', (req, res) => {
@@ -27,11 +75,35 @@ app.post('/upload', (req, res) => {
     return res.render('index', { contacts, message: null, error: 'No file uploaded.' });
   }
   const csvfile = req.files.csvfile;
-  csvParse(csvfile.data.toString(), { columns: true, trim: true }, (err, records) => {
+  parse(csvfile.data.toString(), { columns: true, trim: true }, (err, records) => {
     if (err) {
       return res.render('index', { contacts, message: null, error: 'Invalid CSV format.' });
     }
-    contacts = records;
+    // Flexible header mapping
+    const headerMap = {
+      firstName: ['firstName', 'firstname', 'First Name', 'first_name'],
+      lastName: ['lastName', 'lastname', 'Last Name', 'last_name'],
+      phone: ['phone', 'Phone', 'phoneNumber', 'phone_number', 'mobile'],
+      email: ['email', 'Email', 'emailAddress', 'email_address']
+    };
+    // Find actual column names in the first record
+    const sample = records[0] || {};
+    function findCol(possibles) {
+      return Object.keys(sample).find(k => possibles.includes(k));
+    }
+    const fNameCol = findCol(headerMap.firstName);
+    const lNameCol = findCol(headerMap.lastName);
+    const phoneCol = findCol(headerMap.phone);
+    const emailCol = findCol(headerMap.email);
+    if (!fNameCol || !lNameCol || !phoneCol || !emailCol) {
+      return res.render('index', { contacts, message: null, error: 'CSV must contain columns for first name, last name, phone, and email.' });
+    }
+    contacts = records.map(r => ({
+      firstName: r[fNameCol],
+      lastName: r[lNameCol],
+      phone: r[phoneCol],
+      email: r[emailCol]
+    }));
     res.render('index', { contacts, message: 'CSV uploaded successfully.', error: null });
   });
 });
@@ -45,12 +117,24 @@ app.post('/send', async (req, res) => {
     return res.render('index', { contacts, message: null, error: 'Message cannot be empty.' });
   }
   let sendResults = [];
+    // Helper to personalize message
+    function personalize(msg, contact) {
+      return msg
+        .replace(/_firstname/gi, contact.firstName)
+        .replace(/_lastname/gi, contact.lastName);
+    }
+
+  // Send messages: SMS
   if (method === 'sms') {
+    // Clear pending message after sending
+    pendingMessage = null;
+    pendingMethod = null;
     const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
     for (const contact of contacts) {
+      const personalizedMessage = personalize(message, contact);
       try {
         await client.messages.create({
-          body: message,
+          body: personalizedMessage,
           from: process.env.TWILIO_PHONE_NUMBER,
           to: contact.phone
         });
@@ -59,28 +143,29 @@ app.post('/send', async (req, res) => {
         sendResults.push(`Failed to send SMS to ${contact.firstName} ${contact.lastName}`);
       }
     }
+
+    // Send messages: Email
   } else if (method === 'email') {
-    const transporter = nodemailer.createTransport({
-      service: process.env.EMAIL_SERVICE,
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-      }
-    });
+    // Clear pending message after sending
+    pendingMessage = null;
+    pendingMethod = null;
     for (const contact of contacts) {
+      const personalizedMessage = personalize(message, contact);
+      const msg = {
+        to: contact.email,
+        from: process.env.EMAIL_FROM,
+        subject: 'Notification',
+        text: personalizedMessage
+      };
       try {
-        await transporter.sendMail({
-          from: process.env.EMAIL_FROM,
-          to: contact.email,
-          subject: 'Notification',
-          text: message
-        });
+        await sgMail.send(msg);
         sendResults.push(`Email sent to ${contact.firstName} ${contact.lastName}`);
       } catch (e) {
         sendResults.push(`Failed to send email to ${contact.firstName} ${contact.lastName}`);
       }
     }
   }
+
   res.render('index', { contacts, message: sendResults.join('\n'), error: null });
 });
 

@@ -22,6 +22,16 @@
       </div>
       <button type="submit" class="btn btn-primary">Upload</button>
     </form>
+    <div class="d-flex mb-3">
+      <% if (typeof resultsAvailable !== 'undefined' && resultsAvailable) { %>
+        <a href="/results.csv" class="btn btn-outline-info me-2">Download Results CSV</a>
+      <% } %>
+      <% if ((contacts && contacts.length) || (typeof resultsAvailable !== 'undefined' && resultsAvailable)) { %>
+        <form action="/clear" method="post" style="display:inline;">
+          <button type="submit" class="btn btn-outline-danger">Clear Campaign</button>
+        </form>
+      <% } %>
+    </div>
     <% if (contacts && contacts.length) { %>
       <h2>Contacts</h2>
       <table class="table table-bordered">

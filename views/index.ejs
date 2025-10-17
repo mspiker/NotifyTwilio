@@ -8,7 +8,7 @@
 </head>
 <body>
   <div class="container mt-5">
-    <h1 class="mb-4">Twilio Communication Broker</h1>
+    <h1 class="mb-4">Communication Broker</h1>
     <% if (error) { %>
       <div class="alert alert-danger"><%= error %></div>
     <% } %>
@@ -31,9 +31,9 @@
           </span>
           <br/><span class="text-muted small">CSV format: firstName, lastName, phone, email</span>
         </label>
-        <input class="form-control" type="file" id="csvfile" name="csvfile" accept=".csv" required>
+  <input class="form-control" type="file" id="csvfile" name="csvfile" accept=".csv" required <% if (contacts && contacts.length) { %>disabled<% } %>>
       </div>
-      <button type="submit" class="btn btn-primary">Upload</button>
+  <button type="submit" class="btn btn-primary" <% if (contacts && contacts.length) { %>disabled<% } %>>Upload</button>
     </form>
     <div class="d-flex mb-3">
       <% if (typeof resultsAvailable !== 'undefined' && resultsAvailable) { %>

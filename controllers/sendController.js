@@ -11,10 +11,10 @@ function personalize(msg, contact) {
 exports.handleSend = async (req, res, contacts, pending, setResultsCsv) => {
   const { message, method } = req.body;
   if (!contacts.length) {
-    return res.render('index', { contacts, message: null, error: 'No contacts uploaded.' });
+    return res.render('index', { contacts, message: null, error: 'No contacts uploaded.', user: req.user, title: 'NotifyTwilio' });
   }
   if (!message) {
-    return res.render('index', { contacts, message: null, error: 'Message cannot be empty.' });
+    return res.render('index', { contacts, message: null, error: 'Message cannot be empty.', user: req.user, title: 'NotifyTwilio' });
   }
   let sendResults = [];
   let resultsForCsv = [];
@@ -64,5 +64,5 @@ exports.handleSend = async (req, res, contacts, pending, setResultsCsv) => {
   }
   const csvData = stringify(resultsForCsv, { header: true });
   setResultsCsv(csvData);
-  res.render('index', { contacts, message: sendResults.join('\n'), error: null, resultsAvailable: true });
+  res.render('index', { contacts, message: sendResults.join('\n'), error: null, resultsAvailable: true, user: req.user, title: 'NotifyTwilio' });
 };

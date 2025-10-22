@@ -14,12 +14,12 @@ function findCol(sample, possibles) {
 
 exports.handleUpload = (req, res, contacts) => {
   if (!req.files || !req.files.csvfile) {
-    return res.render('index', { contacts, message: null, error: 'No file uploaded.' });
+    return res.render('index', { contacts, message: null, error: 'No file uploaded.', title: 'NotifyTwilio', user: req.user });
   }
   const csvfile = req.files.csvfile;
   parse(csvfile.data.toString(), { columns: true, trim: true }, (err, records) => {
     if (err) {
-      return res.render('index', { contacts, message: null, error: 'Invalid CSV format.' });
+      return res.render('index', { contacts, message: null, error: 'Invalid CSV format.', title: 'NotifyTwilio', user: req.user });
     }
     const sample = records[0] || {};
     const fNameCol = findCol(sample, headerMap.firstName);
@@ -27,7 +27,7 @@ exports.handleUpload = (req, res, contacts) => {
     const phoneCol = findCol(sample, headerMap.phone);
     const emailCol = findCol(sample, headerMap.email);
     if (!fNameCol || !lNameCol || !phoneCol || !emailCol) {
-      return res.render('index', { contacts, message: null, error: 'CSV must contain columns for first name, last name, phone, and email.' });
+      return res.render('index', { contacts, message: null, error: 'CSV must contain columns for first name, last name, phone, and email.', title: 'NotifyTwilio', user: req.user });
     }
     const newContacts = records.map(r => ({
       firstName: r[fNameCol],
@@ -37,6 +37,6 @@ exports.handleUpload = (req, res, contacts) => {
     }));
     contacts.length = 0;
     newContacts.forEach(c => contacts.push(c));
-    res.render('index', { contacts, message: 'CSV uploaded successfully.', error: null });
+    res.render('index', { contacts, message: 'CSV uploaded successfully.', error: null, title: 'NotifyTwilio', user: req.user });
   });
 };
